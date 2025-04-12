@@ -1,5 +1,7 @@
 package StrategyPattern.Sundarvan;
 
 public interface Snake {
-    public String getdetails();
+    String display();
+    String performBite();
+    void setBiteBehavior(BiteBehavior biteBehavior); // Allow changing behavior dynamically
 }

@@ -1,8 +1,26 @@
 package StrategyPattern.Sundarvan;
 
-public class Python implements Snake{
+// Python class (Non-Poisonous Snake)
+public class Python implements Snake {
+    private BiteBehavior biteBehavior;
+
+    public Python() {
+        this.biteBehavior = new NonPoisonousBite();
+    }
+
     @Override
-    public String getdetails() {
-        return "Python";
+    public String display() {
+        return "I am a Python!";
+    }
+
+    @Override
+    public String performBite() {
+       return biteBehavior.bite();
+    }
+
+    @Override
+    public void setBiteBehavior(BiteBehavior biteBehavior) {
+        this.biteBehavior = biteBehavior;
     }
 }
+
