@@ -10,7 +10,7 @@ public class Main {
         System.out.print("Enter Money value : ");
         double money = scanner.nextDouble();
 
-        if(money%10 == 00){
+        if(money%10 == 0){
             RequestedMoney requestedMoney = new RequestedMoney(money);
         }else{
             System.out.println("Money must multiplication of 10");

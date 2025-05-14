@@ -9,5 +9,12 @@ public class Main {
         System.out.println("DatabaseConnectionManaget 2 : " + databaseConnectionManager2.hashCode());
 
         DatabaseConnectionManager databaseConnectionManager3 = (DatabaseConnectionManager) databaseConnectionManager1.clone();
+
+
+
+
+
+
+
     }
 }
