@@ -1,0 +1,80 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+from sklearn.model_selection import KFold
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# ------------------------------
+# Load dataset
+# ------------------------------
+data = pd.read_csv("./student_dataset.csv", encoding="latin1")
+
+# Drop ID (not useful)
+df = data.drop(columns=["Student_ID"])
+
+# Handle missing values
+for col in ["Age", "Marks", "Attendance", "Hours_Study"]:
+    df[col] = df[col].fillna(df[col].median())
+
+# Handle outliers (IQR)
+for col in ["Age", "Marks", "Attendance", "Hours_Study"]:
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower = Q1 - 1.5 * IQR
+    upper = Q3 + 1.5 * IQR
+    df[col] = df[col].clip(lower, upper)
+
+# Encode target
+le = LabelEncoder()
+df["Class"] = le.fit_transform(df["Class"])  # Fail=0, Pass=1
+
+# Split features/target
+X = df.drop(columns=["Class"])
+y = df["Class"]
+
+# Scale features
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)
+
+# ------------------------------
+# KFold + KNN
+# ------------------------------
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+knn = KNeighborsClassifier(n_neighbors=5, metric="euclidean")
+
+accuracies = []
+
+for fold, (train_index, test_index) in enumerate(kf.split(X_scaled), 1):
+    X_train, X_test = X_scaled[train_index], X_scaled[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+
+    knn.fit(X_train, y_train)
+    y_pred = knn.predict(X_test)
+
+    # Accuracy
+    acc = accuracy_score(y_test, y_pred)
+    accuracies.append(acc)
+
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, y_pred)
+    TN, FP, FN, TP = cm.ravel()
+
+    # Metrics
+    sensitivity = TP / (TP + FN) if (TP + FN) != 0 else 0   # True Positive Rate
+    specificity = TN / (TN + FP) if (TN + FP) != 0 else 0   # True Negative Rate
+    type1_error = FP / (FP + TN) if (FP + TN) != 0 else 0   # False Positive Rate
+    type2_error = FN / (FN + TP) if (FN + TP) != 0 else 0   # False Negative Rate
+
+    # Print results
+    print(f"\n---- Fold {fold} ----")
+    print("Accuracy:", acc)
+    print("Confusion Matrix:\n", cm)
+    print(f"Sensitivity (Recall+): {sensitivity:.2f}")
+    print(f"Specificity (Recall-): {specificity:.2f}")
+    print(f"Type I Error (False Positive Rate): {type1_error:.2f}")
+    print(f"Type II Error (False Negative Rate): {type2_error:.2f}")
+    print(classification_report(y_test, y_pred, target_names=le.classes_))
+
+print("\nAverage Accuracy:", sum(accuracies) / len(accuracies))
+
